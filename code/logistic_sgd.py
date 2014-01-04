@@ -171,7 +171,7 @@ class LogisticRegression(object):
             # represents a mistake in prediction
             return T.mean(T.neq(self.y_pred, y))
         else:
-            return T.mean(T.abs(self.y_pred - y)) / 2
+            return T.mean(T.abs_(self.y_pred - y)) / 2
 
 
 def load_data(dataset):
