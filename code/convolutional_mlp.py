@@ -104,7 +104,7 @@ class LeNetConvPoolLayer(object):
 
 
 def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
-                    dataset='mnist.pkl.gz',
+                    dataset='mnist.pkl.gz', datasets = None,
                     nkerns=[20, 50], batch_size=500):
     """ Demonstrates lenet on MNIST dataset
 
@@ -124,11 +124,15 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
 
     rng = numpy.random.RandomState(23455)
 
-    datasets = load_data(dataset)
-
-    train_set_x, train_set_y = datasets[0]
-    valid_set_x, valid_set_y = datasets[1]
-    #test_set_x, test_set_y = datasets[2]
+    if datasets:
+        train_set_x, train_set_y = datasets[0]
+        valid_set_x, valid_set_y = datasets[1]
+    else:
+        datasets = load_data(dataset)
+        train_set_x, train_set_y = datasets[0]
+        valid_set_x, valid_set_y = datasets[1]
+        #test_set_x, test_set_y = datasets[2]
+        datasets = None
 
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0]
@@ -144,9 +148,12 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     y = T.ivector('y')  # the labels are presented as 1D vector of
                         # [int] labels
 
-    #ishape = (28, 28)  # this is the size of MNIST images
-    ishape = (40, 40)
-    nlabels = train_set_y.get_value(borrow=True).shape[1]
+    if datasets:
+        ishape = (40, 40)
+        nlabels = train_set_y.get_value(borrow=True).shape[1]
+    else: 
+        ishape = (28, 28)  # this is the size of MNIST images
+        nlabels = 10
 
     ######################
     # BUILD ACTUAL MODEL #
@@ -302,9 +309,10 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     output.close()
 
 if __name__ == '__main__':
-    for i in range(11):
-        evaluate_lenet5(dataset = 'task%d.pkl' % i)
+    evaluate_lenet5()
 
+def trainOn(name, datasets):
+    evaluate_lenet5(dataset = name, datasets = datasets)
 
 def experiment(state, channel):
     evaluate_lenet5(state.learning_rate, dataset=state.dataset)

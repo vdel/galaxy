@@ -205,8 +205,7 @@ def load_data(dataset):
         f = gzip.open(dataset, 'rb')
     else:
         f = open(dataset, 'rb')
-    #train_set, valid_set, test_set = cPickle.load(f)
-    train_set, valid_set = cPickle.load(f)
+    train_set, valid_set, test_set = cPickle.load(f)
     f.close()
     #train_set, valid_set, test_set format: tuple(input, target)
     #input is an numpy.ndarray of 2 dimensions (a matrix)
