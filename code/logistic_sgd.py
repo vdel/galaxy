@@ -87,7 +87,8 @@ class LogisticRegression(object):
 
         # compute prediction as class whose probability is maximal in
         # symbolic form
-        self.y_pred = T.argmax(self.p_y_given_x, axis=1)
+        #self.y_pred = T.argmax(self.p_y_given_x, axis=1)
+        self.y_pred = self.p_y_given_x
 
         # parameters of the model
         self.params = [self.W, self.b]
@@ -163,14 +164,14 @@ class LogisticRegression(object):
         # check if y has same dimension of y_pred
         if y.ndim != self.y_pred.ndim:
             raise TypeError('y should have the same shape as self.y_pred',
-                ('y', y.ndim, 'y_pred', self.y_pred.ndim))
+                ('y.ndim', y.ndim, 'y_pred.ndim', self.y_pred.ndim))
         # check if y is of the correct datatype
         if y.dtype.startswith('int'):
             # the T.neq operator returns a vector of 0s and 1s, where 1
             # represents a mistake in prediction
             return T.mean(T.neq(self.y_pred, y))
         else:
-            raise NotImplementedError()
+            return T.mean(T.abs(self.y_pred - y)) / 2
 
 
 def load_data(dataset):
