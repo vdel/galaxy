@@ -145,8 +145,9 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
     x = T.matrix('x')   # the data is presented as rasterized images
-    y = T.ivector('y')  # the labels are presented as 1D vector of
+    #y = T.ivector('y')  # the labels are presented as 1D vector of
                         # [int] labels
+    y = T.matrix('y')
 
     if datasets:
         ishape = (40, 40)
