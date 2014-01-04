@@ -3,4 +3,5 @@
 data/task*.pkl*
 data/images_training
 data/images_training_cropped
+data/images_training_cropped.zip
 data/mnist.pkl.gz

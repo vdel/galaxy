@@ -201,7 +201,10 @@ def load_data(dataset):
     print '... loading data'
 
     # Load the dataset
-    f = gzip.open(dataset, 'rb')
+    if dataset[-3:] == '.gz':
+        f = gzip.open(dataset, 'rb')
+    else:
+        f = open(dataset, 'rb')
     #train_set, valid_set, test_set = cPickle.load(f)
     train_set, valid_set = cPickle.load(f)
     f.close()

@@ -133,10 +133,10 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0]
     n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-    n_test_batches = test_set_x.get_value(borrow=True).shape[0]
+    #n_test_batches = test_set_x.get_value(borrow=True).shape[0]
     n_train_batches /= batch_size
     n_valid_batches /= batch_size
-    n_test_batches /= batch_size
+    #n_test_batches /= batch_size
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
@@ -189,10 +189,10 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     cost = layer3.negative_log_likelihood_soft(y)
 
     # create a function to compute the mistakes that are made by the model
-    test_model = theano.function([index], layer3.errors(y),
-             givens={
-                x: test_set_x[index * batch_size: (index + 1) * batch_size],
-                y: test_set_y[index * batch_size: (index + 1) * batch_size]})
+    #test_model = theano.function([index], layer3.errors(y),
+    #         givens={
+    #            x: test_set_x[index * batch_size: (index + 1) * batch_size],
+    #            y: test_set_y[index * batch_size: (index + 1) * batch_size]})
 
     validate_model = theano.function([index], layer3.errors(y),
             givens={
@@ -296,10 +296,16 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     print >> sys.stderr, ('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
+    
+    output = open(dataset + '.params', 'wb')
+    cPickle.dump(params, output)
+    output.close()
 
 if __name__ == '__main__':
-    evaluate_lenet5()
+    for i in range(11):
+        evaluate_lenet5(dataset = 'task%d.pkl' % i)
 
 
 def experiment(state, channel):
     evaluate_lenet5(state.learning_rate, dataset=state.dataset)
+

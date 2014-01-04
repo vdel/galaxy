@@ -79,18 +79,16 @@ def readGT(file, imgDir):
                 train_set[1][train_count, :] = distrib
                 train_count += 1
 
-            break
-
         output = open('task%d.pkl' % i, 'wb')
         cPickle.dump(train_set, output)
         cPickle.dump(valid_set, output)
         output.close()
 
-        f_in = open('task%d.pkl' % i, 'rb')
-        f_out = gzip.open('task%d.pkl.gz' % i, 'wb')
-        f_out.writelines(f_in)
-        f_out.close()
-        f_in.close()
+        #f_in = open('task%d.pkl' % i, 'rb')
+        #f_out = gzip.open('task%d.pkl.gz' % i, 'wb')
+        #f_out.writelines(f_in)
+        #f_out.close()
+        #f_in.close()
 
 if __name__ == "__main__":
     readGT('solutions_training.csv', 'images_training_cropped')
