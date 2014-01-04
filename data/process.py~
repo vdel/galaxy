@@ -1,0 +1,48 @@
+import os
+import csv
+from scipy import misc
+import cPickle
+
+def makeTree(pb):
+    return [pb[0 : 3],   # Task 01
+            pb[3 : 5],   # Task 02
+            pb[5 : 7],   # Task 03
+            pb[7 : 9],   # Task 04
+            pb[9 : 13],  # Task 05
+            pb[13 : 15], # Task 06
+            pb[15 : 18], # Task 07
+            pb[18 : 25], # Task 08
+            pb[25 : 28], # Task 09
+            pb[28 : 31], # Task 10
+            pb[31 : 37]] # Task 11
+
+def readGT(file, imgDir):
+    tasks = [None] * 11
+    for i in range(11):
+        tasks[i] = {}
+    
+    f = open(file, 'rb')
+    reader = csv.reader(f, delimiter=',', quotechar='|')
+    headerRead = True
+    for row in reader:
+        if headerRead:
+            headerRead = False
+            continue
+
+        tree = makeTree(map(float, row[1:]))
+
+        for i, task in enumerate(tree):
+            s = reduce(lambda x, y: x + y, task)
+            if s > 0:
+                tasks[i][row[0]] = map(lambda x: x / s, task)
+
+    for i, task in enumerate(tasks):
+        print "Task #%02d: %d images" % (i + 1, len(task.values()))
+
+    for i, task in enumerate(tasks):
+        for imgName, distrib in task.items():
+            img = misc.imread(os.path.join(imgDir, imgName + ".jpg"))
+            print img.shape
+
+if __name__ == "__main__":
+    readGT('solutions_training.csv', 'images_training_cropped')
