@@ -1,8 +1,0 @@
-#!/bin/bash
-OUTDIR=images_training_cropped 
-mkdir $OUTDIR
-
-for f in `ls images_training/`; do 
-echo "Processing $f"
-convert images_training/$f -crop 142x142+141+141 -resize 50% $OUTDIR/$f
-done

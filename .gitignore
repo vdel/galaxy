@@ -1,3 +1,6 @@
+*~
+*.pyc
+data/task*.pkl*
 data/images_training
 data/images_training_cropped
 data/mnist.pkl.gz
