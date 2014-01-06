@@ -90,7 +90,7 @@ def readGT(file, imgDir):
         train_count = 0
         valid_count = 0
         for ((imgName, distrib), isVal) in zip(task.items(), list(val)):
-            #print "Preparing task #%02d: train: %d/%d images, validation: %d/%d images" % (i + 1, train_count, ntrain, valid_count, nval)
+            print "Preparing task #%02d: train: %d/%d images, validation: %d/%d images" % (i + 1, train_count, ntrain, valid_count, nval)
             img = Image.open(open(os.path.join(imgDir, imgName + ".jpg")))
             img = np.asarray(img, dtype='float64') / 256.
 
