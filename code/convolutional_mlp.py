@@ -114,7 +114,7 @@ class ConvNet(object):
                  nConvLayers = 2, nConvKernels = [20, 50],  
                  nFullLayers = 1, nFullOut = (500)):
         
-        assert(len(kernelShape) > nConvLayers)
+        assert(len(kernelShape) >= nConvLayers)
 
         self.meta = {'shape': shape,
                      'nLabels': nLabels,
