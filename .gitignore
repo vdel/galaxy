@@ -3,3 +3,4 @@
 task*.pkl*
 data/images_training*
 data/mnist.pkl.gz
+code/bak

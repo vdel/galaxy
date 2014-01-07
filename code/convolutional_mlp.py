@@ -21,13 +21,12 @@ References:
    http://yann.lecun.com/exdb/publis/pdf/lecun-98.pdf
 
 """
-import cPickle
-import gzip
 import os
 import sys
 import time
 import copy
 import numpy
+import cPickle
 
 import theano
 import theano.tensor as T
@@ -38,7 +37,7 @@ from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
 
 
-class LeNetConvPoolLayer(object):
+class ConvPoolLayer(object):
     """Pool Layer of a convolutional network """
 
     def __init__(self, rng, input, filter_shape, image_shape, poolsize=(2, 2)):
@@ -108,10 +107,90 @@ class LeNetConvPoolLayer(object):
         # store parameters of this layer
         self.params = [self.W, self.b]
 
+class ConvNet(object):
+    
+    def __init__(self, batchSize, shape, nLabels, softObj = True,
+                 kernelShape = (5, 5), poolSize = (2, 2),
+                 nConvLayers = 2, nConvKernels = [20, 50],  
+                 nFullLayers = 1, nFullOut = (500)):
+        
+        assert(len(nkerns) > nConvLayers)
 
-def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
-                    dataset='mnist.pkl.gz', datasets = None, softObj = False, nlabels = None,
-                    nkerns=[20, 50, 125], batch_size=500):
+        self.meta = {'shape': shape,
+                     'nLabels': nLabels,
+                     'softObj': softObj,
+                     'kernelShape': kernelShape,
+                     'poolSize': poolSize,
+                     'nConvLayers': nConvLayers,
+                     'nConvKernels': nConvKernels,
+                     'nFullLayers': nFullLayers,
+                     'nFullOut': nFullOut},
+        
+        rng = numpy.random.RandomState(23455)
+        x = T.matrix('x')   # the data is presented as rasterized images
+        
+        params = []
+        ishape = shape[0 : 2]
+        prev_output = x.reshape((batchSize, shape[2], ishape[0], ishape[1]))
+        for l in range(nConvLayers):
+            nlayers = shape[2] if l == 0 else nConvKernels[l - 1]
+            layer = ConvPoolLayer(rng, input = prev_output,
+                                  image_shape = (batchSize, nlayers, ishape[0], ishape[1]),
+                                  filter_shape = (nConvKernels[l], nlayers, fshape[0], fshape[1]), poolsize = poolsize)
+            params = layer.params + params
+            ishape = layer.oshape
+            prev_output = layer.output
+
+        prev_out = nkerns[nConvLayers - 1] * ishape[0] * ishape[1]
+        for l in range(nFullLayers):
+            # construct a fully-connected sigmoidal layer
+            layer = HiddenLayer(rng, input = prev_output,
+                                n_in = prev_out, n_out = nFullOut(l), activation=T.tanh)
+            params = layer_full0.params + params
+            prev_out = nFullOut(l)
+            prev_output = layer.output        
+                
+        # classify the values of the fully-connected sigmoidal layer
+        self.layer = LogisticRegression(input = prev_output, n_in = prev_out, n_out = nLabels, softObj = softObj)
+        self.params = self.layer.params + params
+    
+
+    def getParams(self):
+        return map(lambda shared: shared.value, self.params)
+
+    def setParams(self, params):
+        apply(lambda (shared, value): shared.value = value, zip(self.params, params))
+
+    def getMeta(self):
+        return copy.copy(self.meta)
+
+    def getMetaHash(self):
+        return hash(frozenset(self.meta.items()))
+
+    def save(self, f):
+        f = open(f, 'wb')
+        cPickle.dump(net.getMeta(), f)
+        cPickle.dump(net.getParams(), f)
+        f.close()
+
+def loadConvNet(f, batchSize):
+    f = open(f, 'rb')
+    meta, params = cPickle.load(f)
+    f.close()
+
+    net = ConvNet(batchSize, meta['shape'], meta['nLabels'], meta['softObj'],
+                  meta['kernelShape'], meta['poolSize'],
+                  meta['nConvLayers'], meta['nConvKernels'],  
+                  meta['nFullLayers'], meta['nFullOut'])  
+    net.setParams(params)
+    return net
+
+def train(dataset, nLabels, shape, 
+          learning_rate=0.1, n_epochs=200,          
+          batchSize=500, softObj = True,
+          kernelShape = (5, 5), poolSize = (2, 2),
+          nConvLayers = 2, nConvKernels = [20, 50],  
+          nFullLayers = 1, nFullOut = (500)):
     """ Demonstrates lenet on MNIST dataset
 
     :type learning_rate: float
@@ -128,106 +207,45 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     :param nkerns: number of kernels on each layer
     """
 
-    rng = numpy.random.RandomState(23455)
+    if not isinstance(dataset, dict):
+        dataset = load_data(dataset)     
 
-    if datasets:
-        train_set_x, train_set_y = datasets[0]
-        valid_set_x, valid_set_y = datasets[1]
-    else:
-        datasets = load_data(dataset)
-        train_set_x, train_set_y = datasets[0]
-        valid_set_x, valid_set_y = datasets[1]
-        #test_set_x, test_set_y = datasets[2]
-        datasets = None
-
+    train_set_x, train_set_y = dataset['train']
+    valid_set_x, valid_set_y = dataset['valid']
+    
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0]
     n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-    #n_test_batches = test_set_x.get_value(borrow=True).shape[0]
     n_train_batches /= batch_size
     n_valid_batches /= batch_size
-    #n_test_batches /= batch_size
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
-    x = T.matrix('x')   # the data is presented as rasterized images
     if softObj:
         y = T.matrix('y')
     else:
         y = T.ivector('y')  # the labels are presented as 1D vector of [int] labels
-
-    if datasets:
-        nlabels = datasets[2]
-        ishape = tuple(datasets[3][0:2])
-        nlayers = 3
-    else:
-        ishape = (28, 28)  # this is the size of MNIST images
-        nlabels = 10
-        nlayers = 1
 
     ######################
     # BUILD ACTUAL MODEL #
     ######################
     print '... building the model'
 
-    fshape = (5, 5)
-    poolsize = (2, 2)
-    nOut = 500
-    doThridLayer = 1
-
-    params = []
-
-    layer0_input = x.reshape((batch_size,nlayers,ishape[0],ishape[1]))
-    
-    layer0 = LeNetConvPoolLayer(rng, input=layer0_input,
-                                image_shape=(batch_size, nlayers,ishape[0],ishape[1]),
-                                filter_shape=(nkerns[0], nlayers,fshape[0],fshape[1]), poolsize = poolsize)
-    params = layer0.params + params
-    ishape = layer0.oshape
-    
-    layer1 = LeNetConvPoolLayer(rng, input=layer0.output,
-                                image_shape=(batch_size, nkerns[0],ishape[0],ishape[1]),
-                                filter_shape=(nkerns[1], nkerns[0],fshape[0],fshape[1]), poolsize= poolsize)
-    params = layer1.params + params
-    ishape = layer1.oshape
-
-    if not doThridLayer:
-        layer_full0_input = layer1.output.flatten(2)
-        nkerns_last = nkerns[1]
-    else:
-        layer2 = LeNetConvPoolLayer(rng, input=layer1.output,
-                                    image_shape=(batch_size, nkerns[1],ishape[0],ishape[1]),
-                                    filter_shape=(nkerns[2], nkerns[1],fshape[0],fshape[1]), poolsize= poolsize)
-        params = layer2.params + params
-        ishape = layer2.oshape
-        layer_full0_input = layer2.output.flatten(2)        
-        nkerns_last = nkerns[2]
-
-    # construct a fully-connected sigmoidal layer
-    layer_full0 = HiddenLayer(rng, input=layer_full0_input,
-                              n_in = nkerns_last * ishape[0] * ishape[1], n_out = nOut, activation=T.tanh)
-    params = layer_full0.params + params
-    
-    # classify the values of the fully-connected sigmoidal layer
-    layer_last = LogisticRegression(input=layer_full0.output, n_in = nOut, n_out = nlabels, softObj = softObj)
-    params = layer_last.params + params
+    net = ConvNet(batchSize, shape, nLabels, softObj,
+                 kernelShape, poolSize,
+                 nConvLayers, nConvKernels,  
+                 nFullLayers, nFullOut)  
    
     # the cost we minimize during training is the NLL of the model
-    cost = layer_last.negative_log_likelihood(y)
+    cost = net.layer.negative_log_likelihood(y)
 
-    # create a function to compute the mistakes that are made by the model
-    #test_model = theano.function([index], layer_last.errors(y),
-    #         givens={
-    #            x: test_set_x[index * batch_size: (index + 1) * batch_size],
-    #            y: test_set_y[index * batch_size: (index + 1) * batch_size]})
-
-    validate_model = theano.function([index], layer_last.errors(y),
-            givens={
-                x: valid_set_x[index * batch_size: (index + 1) * batch_size],
-                y: valid_set_y[index * batch_size: (index + 1) * batch_size]})
+    validate_model = theano.function([index], net.layer.errors(y),
+                                     givens={
+            x: valid_set_x[index * batchSize: (index + 1) * batchSize],
+            y: valid_set_y[index * batchSize: (index + 1) * batchSize]})
  
     # create a list of gradients for all model parameters
-    grads = T.grad(cost, params)
+    grads = T.grad(cost, net.params)
 
     # train_model is a function that updates the model parameters by
     # SGD Since this model has many parameters, it would be tedious to
@@ -235,13 +253,13 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
     # create the updates list by automatically looping over all
     # (params[i],grads[i]) pairs.
     updates = []
-    for param_i, grad_i in zip(params, grads):
+    for param_i, grad_i in zip(net.params, grads):
         updates.append((param_i, param_i - learning_rate * grad_i))
 
     train_model = theano.function([index], cost, updates=updates,
-          givens={
-            x: train_set_x[index * batch_size: (index + 1) * batch_size],
-            y: train_set_y[index * batch_size: (index + 1) * batch_size]})
+                                  givens={
+            x: train_set_x[index * batchSize: (index + 1) * batchSize],
+            y: train_set_y[index * batchSize: (index + 1) * batchSize]})
 
     ###############
     # TRAIN MODEL #
@@ -303,15 +321,7 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
                     # save best validation score and iteration number
                     best_validation_loss = this_validation_loss
                     best_iter = iter
-                    best_params = copy.copy(params)
-
-                    # test it on the test set
-                    #test_losses = [test_model(i) for i in xrange(n_test_batches)]
-                    #test_score = numpy.mean(test_losses)
-                    #print(('     epoch %i, minibatch %i/%i, test error of best '
-                    #       'model %f %%') %
-                    #      (epoch, minibatch_index + 1, n_train_batches,
-                    #       test_score * 100.))
+                    best_params = net.getParams()
 
             if patience <= iter:
                 done_looping = True
@@ -319,23 +329,15 @@ def evaluate_lenet5(learning_rate=0.1, n_epochs=200,
 
     end_time = time.clock()
     print('Optimization complete.')
-    print('Best validation score of %f %% obtained at iteration %i,'\
-          'with test performance %f %%' %
-          (best_validation_loss * 100., best_iter + 1, test_score * 100.))
+    print('Best validation score of %f %% obtained at iteration %i' %
+          (best_validation_loss * 100., best_iter + 1))
     print >> sys.stderr, ('The code for file ' +
                           os.path.split(__file__)[1] +
                           ' ran for %.2fm' % ((end_time - start_time) / 60.))
     
-    output = open(dataset + ('.params_%d_%.2f' % (doThridLayer, best_validation_loss * 100)), 'wb')
-    cPickle.dump(best_params, output)
-    output.close()
+    net.setParams(best_params)
+    return net, best_validation_loss
 
 if __name__ == '__main__':
-    evaluate_lenet5()
-
-def trainOn(name, datasets, softObj):
-    evaluate_lenet5(dataset = name, datasets = datasets, softObj = softObj)
-
-def experiment(state, channel):
-    evaluate_lenet5(state.learning_rate, dataset=state.dataset)
+    train('mnist.pkl.gz', 10, (28, 28, 1))
 

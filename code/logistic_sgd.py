@@ -145,7 +145,7 @@ class LogisticRegression(object):
                 ('y.ndim', y.ndim, 'y_pred.ndim', self.y_pred.ndim))
         # check if y is of the correct datatype
         if self.softObj:
-            return T.mean(T.sum((self.p_y_given_x - y)**2, axis = 1))
+            return T.sqrt(T.mean((self.y_pred - y)**2))
         else:
             # the T.neq operator returns a vector of 0s and 1s, where 1
             # represents a mistake in predictio
@@ -222,9 +222,9 @@ def load_data(dataset):
     valid_set_x, valid_set_y = shared_dataset(valid_set)
     train_set_x, train_set_y = shared_dataset(train_set)
 
-    #rval = [(train_set_x, train_set_y), (valid_set_x, valid_set_y), (test_set_x, test_set_y)]
-    rval = [(train_set_x, train_set_y), (valid_set_x, valid_set_y)]
-    return rval
+    dataset = {'train': (train_set_x, train_set_y), 
+               'valid': (valid_set_x, valid_set_y)}
+    return dataset
 
 
 def sgd_optimization_mnist(learning_rate=0.13, n_epochs=1000,

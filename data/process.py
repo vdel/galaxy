@@ -155,9 +155,12 @@ def readGT(file, imgDir, softObj = False, taskID = None):
                     train_set[1][train_count] = distrib
                     train_count += 1
 
-        yield shared_dataset(train_set, softObj = softObj),  \
-              shared_dataset(valid_set, softObj = softObj),     \
-              nlabels, shape, i
+        dataset = {'train': shared_dataset(train_set, softObj = softObj),
+                   'valid': shared_dataset(valid_set, softObj = softObj),
+                   'nLabels': nlabels, 
+                   'shape': shape, 
+                   'taskID': i}
+        yield dataset
 
 if __name__ == "__main__":
     readGT('solutions_training.csv', 'images_training_cropped')
