@@ -56,7 +56,7 @@ class LogisticRegression(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out):
+    def __init__(self, input, n_in, n_out, softObj = False):
         """ Initialize the parameters of the logistic regression
 
         :type input: theano.tensor.TensorType
@@ -87,11 +87,15 @@ class LogisticRegression(object):
 
         # compute prediction as class whose probability is maximal in
         # symbolic form
-        #self.y_pred = T.argmax(self.p_y_given_x, axis=1)
-        self.y_pred = self.p_y_given_x
+        self.softObj = softObj
+        if self.softObj:
+            self.y_pred = self.p_y_given_x
+        else:
+            self.y_pred = T.argmax(self.p_y_given_x, axis=1)
 
         # parameters of the model
         self.params = [self.W, self.b]
+
 
     def negative_log_likelihood(self, y):
         """Return the mean of the negative log-likelihood of the prediction
@@ -120,36 +124,10 @@ class LogisticRegression(object):
         # LP[n-1,y[n-1]]] and T.mean(LP[T.arange(y.shape[0]),y]) is
         # the mean (across minibatch examples) of the elements in v,
         # i.e., the mean log-likelihood across the minibatch.
-        return -T.mean(T.log(self.p_y_given_x)[T.arange(y.shape[0]), y])
-        
-    def negative_log_likelihood_soft(self, y):
-        """Return the mean of the negative log-likelihood of the prediction
-        of this model under a given target distribution.
-
-        .. math::
-
-            \frac{1}{|\mathcal{D}|} \mathcal{L} (\theta=\{W,b\}, \mathcal{D}) =
-            \frac{1}{|\mathcal{D}|} \sum_{i=0}^{|\mathcal{D}|} \log(P(Y=y^{(i)}|x^{(i)}, W,b)) \\
-                \ell (\theta=\{W,b\}, \mathcal{D})
-
-        :type y: theano.tensor.TensorType
-        :param y: corresponds to a vector that gives for each example the
-                  correct label
-
-        Note: we use the mean instead of the sum so that
-              the learning rate is less dependent on the batch size
-        """
-        # y.shape[0] is (symbolically) the number of rows in y, i.e.,
-        # number of examples (call it n) in the minibatch
-        # T.arange(y.shape[0]) is a symbolic vector which will contain
-        # [0,1,2,... n-1] T.log(self.p_y_given_x) is a matrix of
-        # Log-Probabilities (call it LP) with one row per example and
-        # one column per class LP[T.arange(y.shape[0]),y] is a vector
-        # v containing [LP[0,y[0]], LP[1,y[1]], LP[2,y[2]], ...,
-        # LP[n-1,y[n-1]]] and T.mean(LP[T.arange(y.shape[0]),y]) is
-        # the mean (across minibatch examples) of the elements in v,
-        # i.e., the mean log-likelihood across the minibatch.
-        return -T.mean(T.tensordot(T.log(self.p_y_given_x), y.T))
+        if self.softObj:
+            return -T.mean(T.log(T.sum(self.p_y_given_x * y, axis = 1)))
+        else:
+            return -T.mean(T.log(self.p_y_given_x[T.arange(y.shape[0]), y]))
 
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch
@@ -166,13 +144,12 @@ class LogisticRegression(object):
             raise TypeError('y should have the same shape as self.y_pred',
                 ('y.ndim', y.ndim, 'y_pred.ndim', self.y_pred.ndim))
         # check if y is of the correct datatype
-        if y.dtype.startswith('int'):
-            # the T.neq operator returns a vector of 0s and 1s, where 1
-            # represents a mistake in prediction
-            return T.mean(T.neq(self.y_pred, y))
+        if self.softObj:
+            return T.mean(T.sum((self.p_y_given_x - y)**2, axis = 1))
         else:
-            return T.mean(T.sum((self.y_pred - y)**2 / (self.y_pred + y), axis = 1)) / 2
-
+            # the T.neq operator returns a vector of 0s and 1s, where 1
+            # represents a mistake in predictio
+            return T.mean(T.neq(self.y_pred, y))            
 
 def load_data(dataset):
     ''' Loads the dataset
@@ -208,6 +185,7 @@ def load_data(dataset):
         f = open(dataset, 'rb')
     train_set, valid_set, test_set = cPickle.load(f)
     f.close()
+
     #train_set, valid_set, test_set format: tuple(input, target)
     #input is an numpy.ndarray of 2 dimensions (a matrix)
     #witch row's correspond to an example. target is a
