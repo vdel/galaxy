@@ -159,7 +159,8 @@ class ConvNet(object):
         return map(lambda shared: shared.value, self.params)
 
     def setParams(self, params):
-        apply(lambda (shared, value): shared.value = value, zip(self.params, params))
+        for shared, value in zip(self.params, params):
+            shared.value = value
 
     def getMeta(self):
         return copy.copy(self.meta)
