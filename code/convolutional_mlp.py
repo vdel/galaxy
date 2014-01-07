@@ -136,7 +136,7 @@ class ConvNet(object):
             nlayers = shape[2] if l == 0 else nConvKernels[l - 1]
             layer = ConvPoolLayer(rng, input = prev_output,
                                   image_shape = (batchSize, nlayers, ishape[0], ishape[1]),
-                                  filter_shape = (nConvKernels[l], nlayers, fshape[0], fshape[1]), poolsize = poolsize)
+                                  filter_shape = (nConvKernels[l], nlayers, kernelShape[0], kernelShape[1]), poolsize = poolsize)
             params = layer.params + params
             ishape = layer.oshape
             prev_output = layer.output
