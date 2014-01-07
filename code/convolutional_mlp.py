@@ -112,7 +112,7 @@ class ConvNet(object):
     def __init__(self, batchSize, shape, nLabels, softObj = True,
                  kernelShape = (5, 5), poolSize = (2, 2),
                  nConvLayers = 2, nConvKernels = [20, 50],  
-                 nFullLayers = 1, nFullOut = (500)):
+                 nFullLayers = 1, nFullOut = [500]):
         
         assert(len(kernelShape) >= nConvLayers)
 
@@ -125,29 +125,31 @@ class ConvNet(object):
                      'nConvKernels': nConvKernels,
                      'nFullLayers': nFullLayers,
                      'nFullOut': nFullOut},
+        print self.meta
         
         rng = numpy.random.RandomState(23455)
-        x = T.matrix('x')   # the data is presented as rasterized images
+        self.x = T.matrix('x')   # the data is presented as rasterized images
         
         params = []
         ishape = shape[0 : 2]
-        prev_output = x.reshape((batchSize, shape[2], ishape[0], ishape[1]))
+        prev_output = self.x.reshape((batchSize, shape[2], ishape[0], ishape[1]))
         for l in range(nConvLayers):
             nlayers = shape[2] if l == 0 else nConvKernels[l - 1]
             layer = ConvPoolLayer(rng, input = prev_output,
                                   image_shape = (batchSize, nlayers, ishape[0], ishape[1]),
-                                  filter_shape = (nConvKernels[l], nlayers, kernelShape[0], kernelShape[1]), poolsize = poolsize)
+                                  filter_shape = (nConvKernels[l], nlayers, kernelShape[0], kernelShape[1]), poolsize = poolSize)
             params = layer.params + params
             ishape = layer.oshape
             prev_output = layer.output
 
-        prev_out = nkerns[nConvLayers - 1] * ishape[0] * ishape[1]
+        prev_out = nConvKernels[nConvLayers - 1] * ishape[0] * ishape[1]
+        prev_output = prev_output.flatten(2)
         for l in range(nFullLayers):
             # construct a fully-connected sigmoidal layer
             layer = HiddenLayer(rng, input = prev_output,
-                                n_in = prev_out, n_out = nFullOut(l), activation=T.tanh)
-            params = layer_full0.params + params
-            prev_out = nFullOut(l)
+                                n_in = prev_out, n_out = nFullOut[l], activation=T.tanh)
+            params = layer.params + params
+            prev_out = nFullOut[l]
             prev_output = layer.output        
                 
         # classify the values of the fully-connected sigmoidal layer
@@ -156,11 +158,11 @@ class ConvNet(object):
     
 
     def getParams(self):
-        return map(lambda shared: shared.value, self.params)
+        return map(lambda shared: shared.get_value(), self.params)
 
     def setParams(self, params):
         for shared, value in zip(self.params, params):
-            shared.value = value
+            shared.set_value(value)
 
     def getMeta(self):
         return copy.copy(self.meta)
@@ -191,7 +193,7 @@ def train(dataset, nLabels, shape,
           batchSize=500, softObj = True,
           kernelShape = (5, 5), poolSize = (2, 2),
           nConvLayers = 2, nConvKernels = [20, 50],  
-          nFullLayers = 1, nFullOut = (500)):
+          nFullLayers = 1, nFullOut = [500]):
     """ Demonstrates lenet on MNIST dataset
 
     :type learning_rate: float
@@ -242,7 +244,7 @@ def train(dataset, nLabels, shape,
 
     validate_model = theano.function([index], net.layer.errors(y),
                                      givens={
-            x: valid_set_x[index * batchSize: (index + 1) * batchSize],
+            net.x: valid_set_x[index * batchSize: (index + 1) * batchSize],
             y: valid_set_y[index * batchSize: (index + 1) * batchSize]})
  
     # create a list of gradients for all model parameters
@@ -259,7 +261,7 @@ def train(dataset, nLabels, shape,
 
     train_model = theano.function([index], cost, updates=updates,
                                   givens={
-            x: train_set_x[index * batchSize: (index + 1) * batchSize],
+            net.x: train_set_x[index * batchSize: (index + 1) * batchSize],
             y: train_set_y[index * batchSize: (index + 1) * batchSize]})
 
     ###############
@@ -340,5 +342,5 @@ def train(dataset, nLabels, shape,
     return net, best_validation_loss
 
 if __name__ == '__main__':
-    train('mnist.pkl.gz', 10, (28, 28, 1))
+    train('mnist.pkl.gz', 10, (28, 28, 1), softObj = False)
 
