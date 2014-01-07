@@ -125,7 +125,7 @@ class LogisticRegression(object):
         # the mean (across minibatch examples) of the elements in v,
         # i.e., the mean log-likelihood across the minibatch.
         if self.softObj:
-            return -T.mean(T.log(T.sum(self.p_y_given_x * y, axis = 1)))
+            return T.mean((self.p_y_given_x - y) ** 2)
         else:
             return -T.mean(T.log(self.p_y_given_x[T.arange(y.shape[0]), y]))
 
