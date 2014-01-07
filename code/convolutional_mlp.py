@@ -217,8 +217,8 @@ def train(dataset, nLabels, shape,
     # compute number of minibatches for training, validation and testing
     n_train_batches = train_set_x.get_value(borrow=True).shape[0]
     n_valid_batches = valid_set_x.get_value(borrow=True).shape[0]
-    n_train_batches /= batch_size
-    n_valid_batches /= batch_size
+    n_train_batches /= batchSize
+    n_valid_batches /= batchSize
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
