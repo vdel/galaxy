@@ -25,5 +25,5 @@ for imgName in imgs:
     img = process.readImg(imgDir, imgName)
     pred = [None] * nTasks
     for i in range(nTasks):
-        pred[i] = cnns[i].predict(img)
+        pred[i] = tuple(cnns[i].predict(img)[1])
     print pred[i]
