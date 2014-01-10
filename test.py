@@ -36,10 +36,10 @@ for imgName in imgs:
                 for i, p in enumerate(pred[i]):
                     sum += (p - gt[i]) ** 2
                     count += 1
-                else:
-                    for p in pred[i]:
-                        sum += p ** 2
-                        count += 1
+            else:
+                for p in pred[i]:
+                    sum += p ** 2
+                    count += 1
     break
 
 print sum / count
