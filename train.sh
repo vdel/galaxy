@@ -8,7 +8,7 @@ export THEANO_FLAGS=device=gpu0,floatX=float32,base_compiledir=/meleze/data2/vde
 #export THEANO_FLAGS=floatX=float32,base_compiledir=/meleze/data2/vdelaitr/theano
 
 if [ $# -ne 1 ]; then
-    python learn.py
+    python train.py
 else
-    python learn.py $1
+    python train.py $1
 fi
