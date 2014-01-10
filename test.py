@@ -12,7 +12,7 @@ def printHeader(cnns):
     sys.stdout.write("GalaxyId")
     for i, net in enumerate(cnns):
         for j in range(net.meta['nLabels']):
-            sys.stdout.write(",Class%d.%d" % (i, j))
+            sys.stdout.write(",Class%d.%d" % (i + 1, j + 1))
     print ""
 
 def printPred(imgName, pred):
@@ -60,7 +60,8 @@ for imgName in imgs:
                 for p in pred[i]:
                     sump[i] += p ** 2
                     count[i] += 1
-    break;
+    if count[0] > 10:
+        break;
 
 if tasks:
     for i in range(11):
