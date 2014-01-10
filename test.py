@@ -1,3 +1,4 @@
+import math
 import sys
 sys.path.append('data')
 sys.path.append('code')
@@ -21,8 +22,8 @@ cnns = [None] * nTasks
 for i in range(nTasks):
     cnns[i] = cnn.loadConvNet('task%d.pkl' % i, 1)
 
-sum = 0
-count = 0
+sump = [0] * 11
+count = [0] * 11
 for imgName in imgs:
     img = process.readImg(imgDir, imgName)
     pred = [None] * nTasks
@@ -34,13 +35,15 @@ for imgName in imgs:
             if imgName in tasks[i]:
                 gt = tasks[i][imgName]
                 for i, p in enumerate(pred[i]):
-                    sum += (p - gt[i]) ** 2
-                    count += 1
+                    sump[i] += (p - gt[i]) ** 2
+                    count[i] += 1
             else:
                 print pred, i
                 for p in pred[i]:
-                    sum += p ** 2
-                    count += 1
+                    sump[i] += p ** 2
+                    count[i] += 1
 
 if count > 0:
-    sys.stderr.write("MSE: " + str(sqrt(sum / count)))
+    for i in range(11):
+        sys.stderr.write("MSE: " + str(math.sqrt(sump[i] / count[i])))
+    sys.stderr.write("MSE: " + str(math.sqrt(sum(sump) / sum(count))))
