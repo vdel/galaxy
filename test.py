@@ -37,6 +37,7 @@ for imgName in imgs:
                     sum += (p - gt[i]) ** 2
                     count += 1
             else:
+                print pred, i
                 for p in pred[i]:
                     sum += p ** 2
                     count += 1
