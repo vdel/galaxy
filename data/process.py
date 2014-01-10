@@ -49,9 +49,22 @@ def makeTree(pb):
             pb[28 : 31], # Task 10
             pb[31 : 37]] # Task 11
 
+def makePredRec(i, pb, pred, predRaw):
+    pass
+
 def makePred(predRaw):
     return predRaw
 
+    pred = [None] * 11
+    for i in range(11):
+        pred[i] = [0] * len(predRaw[i])
+
+    makePredRec(0, 1, pred, preadRaw)
+    
+    s = reduce(lambda x, y: x + y, pred[5])
+    if s > 0:
+        pred[5] = map(lambda x: x / s, pred[5])
+    return pred
 
 def readGT(annotFile, normalize = True):
     tasks = [None] * 11
