@@ -50,7 +50,7 @@ def makeTree(pb):
             pb[31 : 37]] # Task 11
 
 def makePred(predRaw):
-    
+    return predRaw
 
 
 def readGT(annotFile, normalize = True):
