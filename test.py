@@ -60,8 +60,6 @@ for imgName in imgs:
                 for p in pred[i]:
                     sump[i] += p ** 2
                     count[i] += 1
-    if count[0] > 10:
-        break;
 
 if tasks:
     for i in range(11):
