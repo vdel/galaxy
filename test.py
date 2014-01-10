@@ -10,7 +10,7 @@ from os.path import isfile, join
 assert(len(sys.argv) > 1)
 imgDir = sys.argv[1]
 if len(sys.argv) > 2:
-    tasks, imgs = process.readGT(sys.argv[2])
+    tasks, imgs = process.readGT(sys.argv[2], False)
 else:
     tasks = None
     imgs = [ f[:-4] for f in listdir(imgDir) \
@@ -21,9 +21,24 @@ cnns = [None] * nTasks
 for i in range(nTasks):
     cnns[i] = cnn.loadConvNet('task%d.pkl' % i, 1)
 
+sum = 0
+count = 0
 for imgName in imgs:
     img = process.readImg(imgDir, imgName)
     pred = [None] * nTasks
     for i in range(nTasks):
         pred[i] = tuple(cnns[i].predict(img)[0])
-    print pred[i]
+    pred = process.makePred(pred)
+    if tasks:        
+        if imgName in tasks[i]:
+            gt = tasks[i][imgName]
+            for i, p in enumerate(pred):
+                sum += (p - gt[i]) ** 2
+                count += 1
+        else:
+            for i, p in enumerate(pred):
+                sum += p ** 2
+                count += 1
+    break
+
+print sum / count

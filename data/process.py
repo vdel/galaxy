@@ -49,8 +49,11 @@ def makeTree(pb):
             pb[28 : 31], # Task 10
             pb[31 : 37]] # Task 11
 
+def makePred(predRaw):
+    
 
-def readGT(annotFile):
+
+def readGT(annotFile, normalize = True):
     tasks = [None] * 11
     mean_max = [0] * 11
     for i in range(11):
@@ -71,9 +74,10 @@ def readGT(annotFile):
         for i, task in enumerate(tree):
             s = reduce(lambda x, y: x + y, task)
             if s > 0:
-                distrib = map(lambda x: x / s, task)
-                mean_max[i] += max(distrib)
-                tasks[i][row[0]] = distrib
+                if normalize:
+                    task = map(lambda x: x / s, task)
+                mean_max[i] += max(task)
+                tasks[i][row[0]] = task
 
     for i in range(11):
         mean_max[i] /= len(tasks[i].values())
