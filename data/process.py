@@ -100,14 +100,14 @@ def makePred(predRaw):
     for i in range(11):
         pred[i] = [0] * len(predRaw[i])
 
-    makePredRec(1, 1, pred, preadRaw)
+    makePredRec(1, 1, pred, predRaw)
     
     s = reduce(lambda x, y: x + y, pred[5])
     if s > 0:
         pred[5] = map(lambda x: x / s, pred[5])
     return pred
 
-def readGT(annotFile, normalize = True):
+def readGT(annotFile, normalize = True, display = True):
     tasks = [None] * 11
     mean_max = [0] * 11
     for i in range(11):
@@ -149,8 +149,9 @@ def readGT(annotFile, normalize = True):
         cPickle.dump(valSet, f)
         f.close()
 
-    for i, task in enumerate(tasks):
-        print "Task #%02d: %d images, confidence = %f" % (i + 1, len(task.values()), mean_max[i])
+    if display:
+        for i, task in enumerate(tasks):
+            print "Task #%02d: %d images, confidence = %f" % (i + 1, len(task.values()), mean_max[i])
         
     return tasks, valSet
 

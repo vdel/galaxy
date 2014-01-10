@@ -11,7 +11,7 @@ from os.path import isfile, join
 assert(len(sys.argv) > 1)
 imgDir = sys.argv[1]
 if len(sys.argv) > 2:
-    tasks, imgs = process.readGT(sys.argv[2], False)
+    tasks, imgs = process.readGT(sys.argv[2], False, False)
 else:
     tasks = None
     imgs = [ f[:-4] for f in listdir(imgDir) \
