@@ -44,6 +44,6 @@ for imgName in imgs:
                     count[i] += 1
 
 if count > 0:
-    for i in range(11):
+    for i in range(1):
         sys.stderr.write("MSE: " + str(math.sqrt(sump[i] / count[i])))
     sys.stderr.write("MSE: " + str(math.sqrt(sum(sump) / sum(count))))
