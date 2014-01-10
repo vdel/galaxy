@@ -43,4 +43,4 @@ for imgName in imgs:
                     count += 1
 
 if count > 0:
-   sys.stderr.write("MSE: " + str(sqrt(sum / count))
+    sys.stderr.write("MSE: " + str(sqrt(sum / count)))
