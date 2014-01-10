@@ -2,5 +2,6 @@
 *.pyc
 task*.pkl*
 data/images_training*
+data/images_test*
 data/mnist.pkl.gz
 code/bak
