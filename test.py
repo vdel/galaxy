@@ -8,6 +8,20 @@ import convolutional_mlp as cnn
 from os import listdir
 from os.path import isfile, join
 
+def printHeader(cnns):
+    sys.stdout.write("GalaxyId")
+    for i, net in enumerate(cnns):
+        for j in range(net.meta['nLabels']):
+            sys.stdout.write(",Class%d.%d" % (i, j))
+    print ""
+
+def printPred(imgName, pred):
+    sys.stdout.write(imgName)
+    for i, pp in enumerate(pred):
+        for p in pp:
+            sys.stdout.write(",%f" % p)
+    print ""
+
 assert(len(sys.argv) > 1)
 imgDir = sys.argv[1]
 if len(sys.argv) > 2:
@@ -22,14 +36,20 @@ cnns = [None] * nTasks
 for i in range(nTasks):
     cnns[i] = cnn.loadConvNet('task%d.pkl' % i, 1)
 
-sump = [0] * 11
-count = [0] * 11
+printHeader(cnns)
+
+if tasks:
+    sump = [0] * 11
+    count = [0] * 11
 for imgName in imgs:
     img = process.readImg(imgDir, imgName)
     pred = [None] * nTasks
     for i in range(nTasks):
         pred[i] = cnns[i].predict(img)[0]
     pred = process.makePred(pred)
+
+    printPred(imgName,pred)
+
     if tasks:        
         for i in range(nTasks):
             if imgName in tasks[i]:
@@ -42,7 +62,7 @@ for imgName in imgs:
                     count[i] += 1
     break;
 
-if count > 0:
+if tasks:
     for i in range(11):
         sys.stderr.write("MSE: " + str(math.sqrt(sump[i] / count[i])) + "\n")
-    sys.stderr.write("MSE: " + str(math.sqrt(sum(sump) / sum(count))) + "\n")
+    sys.stderr.write("Average MSE: " + str(math.sqrt(sum(sump) / sum(count))) + "\n")
