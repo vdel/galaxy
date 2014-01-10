@@ -1,6 +1,20 @@
+224 354
+
 0: default
 1: Hidden nodes: 250
 2: Hidden nodes: 1000
 3: nFullLayers: 2 (100 nodes)
 4: nkerns[0]: 50
 5: nkerns[1]: 100
+6: 40 pix
+7: 60 pix
+8: 60 pix, ConvLayers: 3 (50 sublayers)
+
+precedents: hard assign !
+
+0: 34 pix, kernelShape: (3, 3)
+1: 28 pix, kernelShape: (5, 5)
+2: 34 pix, kernelShape: (7, 7)
+3: 40 pix
+4: 60 pix
+5: 60 pix, ConvLayers: 3 (50 sublayers)

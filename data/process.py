@@ -19,10 +19,10 @@ def shared_dataset(data_xy, borrow=True, softObj = False):
     """
     data_x, data_y = data_xy   
     shared_x = theano.shared(np.asarray(data_x,
-                                           dtype=theano.config.floatX),
+                                        dtype=theano.config.floatX),
                              borrow=borrow)
     shared_y = theano.shared(np.asarray(data_y,
-                                           dtype=theano.config.floatX),
+                                        dtype=theano.config.floatX),
                              borrow=borrow)
     # When storing data on the GPU it has to be stored as floats
     # therefore we will store the labels as ``floatX`` as well

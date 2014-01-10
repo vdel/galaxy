@@ -36,6 +36,13 @@ from theano.tensor.nnet import conv
 from logistic_sgd import LogisticRegression, load_data
 from mlp import HiddenLayer
 
+def tuplify(l):
+    r = []
+    for v in l:
+        if isinstance(v, list):
+            v = tuple(v)
+        r.append(v)
+    return r
 
 class ConvPoolLayer(object):
     """Pool Layer of a convolutional network """
@@ -114,7 +121,8 @@ class ConvNet(object):
                  nConvLayers = 2, nConvKernels = [20, 50],  
                  nFullLayers = 1, nFullOut = [500]):
         
-        assert(len(kernelShape) >= nConvLayers)
+        assert(len(nConvKernels) >= nConvLayers)
+        assert(len(nFullOut) >= nFullLayers)
 
         self.meta = {'shape': shape,
                      'nLabels': nLabels,
@@ -124,9 +132,8 @@ class ConvNet(object):
                      'nConvLayers': nConvLayers,
                      'nConvKernels': nConvKernels,
                      'nFullLayers': nFullLayers,
-                     'nFullOut': nFullOut},
-        print self.meta
-        
+                     'nFullOut': nFullOut}
+
         rng = numpy.random.RandomState(23455)
         self.x = T.matrix('x')   # the data is presented as rasterized images
         
@@ -168,12 +175,12 @@ class ConvNet(object):
         return copy.copy(self.meta)
 
     def getMetaHash(self):
-        return hash(frozenset(self.meta.items()))
+        return hash(frozenset(tuplify(self.meta.keys() + self.meta.values())))
 
     def save(self, f):
         f = open(f, 'wb')
-        cPickle.dump(net.getMeta(), f)
-        cPickle.dump(net.getParams(), f)
+        cPickle.dump(self.getMeta(), f)
+        cPickle.dump(self.getParams(), f)
         f.close()
 
 def loadConvNet(f, batchSize):
