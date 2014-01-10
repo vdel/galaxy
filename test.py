@@ -17,7 +17,7 @@ else:
     imgs = [ f[:-4] for f in listdir(imgDir) \
             if isfile(join(imgDir, f)) and f[-4:] == '.jpg' ]
 
-nTasks = 1
+nTasks = 11
 cnns = [None] * nTasks
 for i in range(nTasks):
     cnns[i] = cnn.loadConvNet('task%d.pkl' % i, 1)
@@ -40,8 +40,9 @@ for imgName in imgs:
                 for p in pred[i]:
                     sump[i] += p ** 2
                     count[i] += 1
+    break;
 
 if count > 0:
-    for i in range(1):
+    for i in range(11):
         sys.stderr.write("MSE: " + str(math.sqrt(sump[i] / count[i])) + "\n")
     sys.stderr.write("MSE: " + str(math.sqrt(sum(sump) / sum(count))) + "\n")
