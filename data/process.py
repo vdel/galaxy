@@ -49,13 +49,14 @@ def makeTree(pb):
             pb[28 : 31], # Task 10
             pb[31 : 37]] # Task 11
 
-def readGT(file, imgDir, softObj = False, taskID = None):
+
+def readGT(annotFile):
     tasks = [None] * 11
     mean_max = [0] * 11
     for i in range(11):
         tasks[i] = {}
 
-    f = open(file, 'rb')
+    f = open(annotFile, 'rb')
     reader = csv.reader(f, delimiter=',', quotechar='|')
     headerRead = True
     allIDs = []
@@ -77,10 +78,6 @@ def readGT(file, imgDir, softObj = False, taskID = None):
     for i in range(11):
         mean_max[i] /= len(tasks[i].values())
 
-    shape = misc.imread(os.path.join(imgDir, tasks[0].keys()[0] + ".jpg")).shape
-    ndata = shape[0] * shape[1] * shape[2]
-    print "Image size: %dx%d (%.1f Ko = %d dimensions)" % (shape[0], shape[1], ndata * 4 / 1000., ndata)
-
     fname = "valSet.pkl"
     if os.path.isfile(fname):
         f = open(fname, 'rb')
@@ -96,9 +93,27 @@ def readGT(file, imgDir, softObj = False, taskID = None):
 
     for i, task in enumerate(tasks):
         print "Task #%02d: %d images, confidence = %f" % (i + 1, len(task.values()), mean_max[i])
+        
+    return tasks, valSet
+
+def readImg(imgDir, imgName, ndata = None):
+    img = Image.open(open(os.path.join(imgDir, imgName + ".jpg")))
+    img = np.asarray(img, dtype='float64') / 256.
+
+    if ndata == None:
+        ndata = img.shape[0] * img.shape[1] * img.shape[2]
+
+    # put image in 4D tensor of shape (1, 3, height, width)
+    return img.swapaxes(0, 2).swapaxes(1, 2).reshape(1, ndata)
+
+
+def readImgTrain(imgDir, tasks, valSet, softObj = True, taskID = None):
+    shape = misc.imread(os.path.join(imgDir, tasks[0].keys()[0] + ".jpg")).shape
+    ndata = shape[0] * shape[1] * shape[2]
+    print "Image size: %dx%d (%.1f Ko = %d dimensions)" % (shape[0], shape[1], ndata * 4 / 1000., ndata)
 
     for i, task in enumerate(tasks):
-        if taskID != None and i != taskID:
+        if taskID != None and taskID != -1 and i != taskID:
             continue
 
         ntrain = 0
@@ -129,11 +144,7 @@ def readGT(file, imgDir, softObj = False, taskID = None):
             isVal = imgName in valSet
 
             #print "Preparing task #%02d: train: %d/%d images, validation: %d/%d images" % (i + 1, train_count, ntrain, valid_count, nval)
-            img = Image.open(open(os.path.join(imgDir, imgName + ".jpg")))
-            img = np.asarray(img, dtype='float64') / 256.
-
-            # put image in 4D tensor of shape (1, 3, height, width)
-            img = img.swapaxes(0, 2).swapaxes(1, 2).reshape(1, ndata)
+            img = readImg(imgDir, imgName, ndata)
 
             if softObj:              
                 if isVal:
@@ -162,5 +173,11 @@ def readGT(file, imgDir, softObj = False, taskID = None):
                    'taskID': i}
         yield dataset
 
+
+def readTrainVal(annotFile, imgDir, softObj = False, taskID = None):
+    tasks, valSet = readGT(annotFile)
+    return readImgTrain(imgDir, tasks, valSet, softObj, taskID)
+
 if __name__ == "__main__":
     readGT('solutions_training.csv', 'images_training_cropped')
+    

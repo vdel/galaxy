@@ -163,6 +163,8 @@ class ConvNet(object):
         self.layer = LogisticRegression(input = prev_output, n_in = prev_out, n_out = nLabels, softObj = softObj)
         self.params = self.layer.params + params
     
+        self.eval = theano.function([self.x], self.layer.p_y_given_x)
+
 
     def getParams(self):
         return map(lambda shared: shared.get_value(), self.params)
@@ -183,9 +185,13 @@ class ConvNet(object):
         cPickle.dump(self.getParams(), f)
         f.close()
 
+    def predict(self, img):
+        return self.eval(img)
+
 def loadConvNet(f, batchSize):
     f = open(f, 'rb')
-    meta, params = cPickle.load(f)
+    meta = cPickle.load(f)
+    params = cPickle.load(f)
     f.close()
 
     net = ConvNet(batchSize, meta['shape'], meta['nLabels'], meta['softObj'],

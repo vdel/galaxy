@@ -2,7 +2,6 @@ import sys
 sys.path.append('data')
 sys.path.append('code')
 
-import cPickle
 import process
 import convolutional_mlp as cnn
 
@@ -23,8 +22,8 @@ meta = {
     'nFullOut': [500, 100]
 }
 
-for dataset in process.readGT('data/solutions_training.csv', 
-                              'data/images_training_cropped_%d_%d' % (crop, size), 
+for dataset in process.readTrainVal('data/solutions_training.csv', 
+                                    'data/images_training_cropped_%d_%d' % (crop, size), 
                               softObj, taskID):
 
     net, loss = cnn.train(dataset, dataset['nLabels'], dataset['shape'], softObj = softObj, **meta)
