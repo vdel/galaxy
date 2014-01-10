@@ -30,15 +30,16 @@ for imgName in imgs:
         pred[i] = tuple(cnns[i].predict(img)[0])
     pred = process.makePred(pred)
     if tasks:        
-        if imgName in tasks[i]:
-            gt = tasks[i][imgName]
-            for i, p in enumerate(pred):
-                sum += (p - gt[i]) ** 2
-                count += 1
-        else:
-            for i, p in enumerate(pred):
-                sum += p ** 2
-                count += 1
+        for i in range(nTasks):
+            if imgName in tasks[i]:
+                gt = tasks[i][imgName]
+                for i, p in enumerate(pred[i]):
+                    sum += (p - gt[i]) ** 2
+                    count += 1
+                else:
+                    for p in pred[i]:
+                        sum += p ** 2
+                        count += 1
     break
 
 print sum / count
