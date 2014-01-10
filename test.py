@@ -41,6 +41,6 @@ for imgName in imgs:
                 for p in pred[i]:
                     sum += p ** 2
                     count += 1
-    break
 
-print sum / count
+if count > 0:
+   sys.stderr.write("MSE: " + str(sqrt(sum / count))
