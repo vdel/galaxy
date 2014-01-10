@@ -22,7 +22,7 @@ meta = {
     'nFullOut': [500, 100]
 }
 
-for dataset in process.readTrainVal('data/solutions_training.csv', 
+for dataset in process.readTrainVal('data/training_solutions.csv', 
                                     'data/images_training_cropped_%d_%d' % (crop, size), 
                               softObj, taskID):
 

@@ -1,12 +1,24 @@
 #!/bin/bash
-CROP=224
-SIZE=224
-OUTDIR=images_training_cropped_${CROP}_${SIZE}
+INDIR=images_training
+CROP=160
+SIZE=60
+
+if [ $# -ge 1 ]; then
+    INDIR=$1
+fi
+if [ $# -ge 2 ]; then
+    SIZE=$2
+fi
+if [ $# -ge 3 ]; then
+    CROP=$3
+fi
+
+OUTDIR=${INDIR}_cropped_${CROP}_${SIZE}
 mkdir $OUTDIR
 
 let "PAD=(424-${CROP}) / 2"
 
-for f in `ls images_training/`; do 
+for f in `ls $INDIR`; do 
 echo "Processing $f"
-convert images_training/$f -crop ${CROP}x${CROP}+${PAD}+${PAD} -resize ${SIZE}x${SIZE} $OUTDIR/$f
+convert $INDIR/$f -crop ${CROP}x${CROP}+${PAD}+${PAD} -resize ${SIZE}x${SIZE} $OUTDIR/$f
 done
