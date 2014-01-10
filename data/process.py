@@ -50,7 +50,30 @@ def makeTree(pb):
             pb[31 : 37]] # Task 11
 
 def makePredRec(i, pb, pred, predRaw):
-    pass
+    ii = i - 1
+    for j, v in enumerate(predRaw[ii]):
+        pred[ii][j] += pb * v
+    if i == 1:
+        makePredRec(7, pb * predRaw[ii][0], pred, predRaw)
+        makePredRec(2, pb * predRaw[ii][1], pred, predRaw)
+    elif i == 2:
+        makePredRec(9, pb * predRaw[ii][0], pred, predRaw)
+        makePredRec(3, pb * predRaw[ii][1], pred, predRaw)
+    elif i == 3:
+        makePredRec(4, pb * predRaw[ii][0], pred, predRaw)
+        makePredRec(4, pb * predRaw[ii][1], pred, predRaw)
+    elif i == 4:
+        makePredRec(10, pb * predRaw[ii][0], pred, predRaw)
+        makePredRec(5, pb * predRaw[ii][1], pred, predRaw)
+    elif i == 5:
+        makePredRec(6, pb * predRaw[ii][0], pred, predRaw)
+        makePredRec(6, pb * predRaw[ii][1], pred, predRaw)
+        makePredRec(6, pb * predRaw[ii][2], pred, predRaw)
+        makePredRec(6, pb * predRaw[ii][3], pred, predRaw)
+    elif i == 6:
+        makePredRec(8, pb * predRaw[ii][0], pred, predRaw)
+
+
 
 def makePred(predRaw):
     return predRaw
@@ -59,7 +82,7 @@ def makePred(predRaw):
     for i in range(11):
         pred[i] = [0] * len(predRaw[i])
 
-    makePredRec(0, 1, pred, preadRaw)
+    makePredRec(1, 1, pred, preadRaw)
     
     s = reduce(lambda x, y: x + y, pred[5])
     if s > 0:

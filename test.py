@@ -28,22 +28,20 @@ for imgName in imgs:
     img = process.readImg(imgDir, imgName)
     pred = [None] * nTasks
     for i in range(nTasks):
-        pred[i] = tuple(cnns[i].predict(img)[0])
+        pred[i] = cnns[i].predict(img)[0]
     pred = process.makePred(pred)
     if tasks:        
         for i in range(nTasks):
             if imgName in tasks[i]:
-                gt = tasks[i][imgName]
-                for i, p in enumerate(pred[i]):
-                    sump[i] += (p - gt[i]) ** 2
+                for p, g in zip(pred[i], tasks[i][imgName]):
+                    sump[i] += (p - g) ** 2
                     count[i] += 1
             else:
-                print pred, i
                 for p in pred[i]:
                     sump[i] += p ** 2
                     count[i] += 1
 
 if count > 0:
     for i in range(1):
-        sys.stderr.write("MSE: " + str(math.sqrt(sump[i] / count[i])))
-    sys.stderr.write("MSE: " + str(math.sqrt(sum(sump) / sum(count))))
+        sys.stderr.write("MSE: " + str(math.sqrt(sump[i] / count[i])) + "\n")
+    sys.stderr.write("MSE: " + str(math.sqrt(sum(sump) / sum(count))) + "\n")
