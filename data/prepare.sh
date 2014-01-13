@@ -1,6 +1,6 @@
 #!/bin/bash
 INDIR=images_training
-CROP=160
+CROP=120
 SIZE=60
 
 if [ $# -ge 1 ]; then

@@ -42,6 +42,7 @@ if tasks:
     sump = [0] * 11
     count = [0] * 11
 for imgName in imgs:
+    sys.stderr.write("Processing %s\n" % imgName)
     img = process.readImg(imgDir, imgName)
     pred = [None] * nTasks
     for i in range(nTasks):

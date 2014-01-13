@@ -6,7 +6,7 @@ import process
 import convolutional_mlp as cnn
 
 softObj = True
-crop = 160
+crop = 120
 size = 60
 
 taskID = None
@@ -16,10 +16,10 @@ if len(sys.argv) > 1:
 meta = {
     'kernelShape': (5, 5), 
     'poolSize': (2, 2),
-    'nConvLayers': 3, 
-    'nConvKernels': [20, 50, 50],
+    'nConvLayers': 2,
+    'nConvKernels': [20, 50],
     'nFullLayers': 1,
-    'nFullOut': [500, 100]
+    'nFullOut': [500]
 }
 
 for dataset in process.readTrainVal('data/training_solutions.csv', 
