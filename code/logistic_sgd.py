@@ -56,7 +56,7 @@ class LogisticRegression(object):
     determine a class membership probability.
     """
 
-    def __init__(self, input, n_in, n_out, softObj = False):
+    def __init__(self, input, n_in, n_out):
         """ Initialize the parameters of the logistic regression
 
         :type input: theano.tensor.TensorType
@@ -87,11 +87,7 @@ class LogisticRegression(object):
 
         # compute prediction as class whose probability is maximal in
         # symbolic form
-        self.softObj = softObj
-        if self.softObj:
-            self.y_pred = self.p_y_given_x
-        else:
-            self.y_pred = T.argmax(self.p_y_given_x, axis=1)
+        self.y_pred = T.argmax(self.p_y_given_x, axis=1)
 
         # parameters of the model
         self.params = [self.W, self.b]
@@ -124,10 +120,7 @@ class LogisticRegression(object):
         # LP[n-1,y[n-1]]] and T.mean(LP[T.arange(y.shape[0]),y]) is
         # the mean (across minibatch examples) of the elements in v,
         # i.e., the mean log-likelihood across the minibatch.
-        if self.softObj:
-            return T.mean((self.p_y_given_x - y) ** 2)
-        else:
-            return -T.mean(T.log(self.p_y_given_x[T.arange(y.shape[0]), y]))
+        return -T.mean(T.log(self.p_y_given_x[T.arange(y.shape[0]), y]))
 
     def errors(self, y):
         """Return a float representing the number of errors in the minibatch
@@ -144,12 +137,15 @@ class LogisticRegression(object):
             raise TypeError('y should have the same shape as self.y_pred',
                 ('y.ndim', y.ndim, 'y_pred.ndim', self.y_pred.ndim))
         # check if y is of the correct datatype
-        if self.softObj:
-            return T.sqrt(T.mean((self.y_pred - y)**2))
-        else:
-            # the T.neq operator returns a vector of 0s and 1s, where 1
-            # represents a mistake in predictio
-            return T.mean(T.neq(self.y_pred, y))            
+        # the T.neq operator returns a vector of 0s and 1s, where 1
+        # represents a mistake in predictio
+        return T.mean(T.neq(self.y_pred, y))            
+
+    def mse(self, y):
+        return T.mean((self.p_y_given_x - y) ** 2)
+
+    def sqrt_mse(self, y):
+        return T.sqrt(mse(y))
 
 def load_data(dataset):
     ''' Loads the dataset
