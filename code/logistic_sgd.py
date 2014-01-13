@@ -145,7 +145,7 @@ class LogisticRegression(object):
         return T.mean((self.p_y_given_x - y) ** 2)
 
     def sqrt_mse(self, y):
-        return T.sqrt(mse(y))
+        return T.sqrt(self.mse(y))
 
 def load_data(dataset):
     ''' Loads the dataset
