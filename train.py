@@ -6,7 +6,7 @@ import process
 import convolutional_mlp as cnn
 
 softObj = True
-crop = 120
+crop = 160
 size = 60
 
 taskID = None
