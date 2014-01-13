@@ -116,7 +116,7 @@ class ConvPoolLayer(object):
 
 class ConvNet(object):
     
-    def __init__(self, batchSize, shape, nLabels, softObj = True,
+    def __init__(self, batchSize, shape, nLabels,
                  kernelShape = (5, 5), poolSize = (2, 2),
                  nConvLayers = 2, nConvKernels = [20, 50],  
                  nFullLayers = 1, nFullOut = [500]):
@@ -126,7 +126,6 @@ class ConvNet(object):
 
         self.meta = {'shape': shape,
                      'nLabels': nLabels,
-                     'softObj': softObj,
                      'kernelShape': kernelShape,
                      'poolSize': poolSize,
                      'nConvLayers': nConvLayers,
@@ -160,7 +159,7 @@ class ConvNet(object):
             prev_output = layer.output        
                 
         # classify the values of the fully-connected sigmoidal layer
-        self.layer = LogisticRegression(input = prev_output, n_in = prev_out, n_out = nLabels, softObj = softObj)
+        self.layer = LogisticRegression(input = prev_output, n_in = prev_out, n_out = nLabels)
         self.params = self.layer.params + params
     
         self.eval = theano.function([self.x], self.layer.p_y_given_x)
@@ -194,7 +193,7 @@ def loadConvNet(f, batchSize):
     params = cPickle.load(f)
     f.close()
 
-    net = ConvNet(batchSize, meta['shape'], meta['nLabels'], meta['softObj'],
+    net = ConvNet(batchSize, meta['shape'], meta['nLabels'],
                   meta['kernelShape'], meta['poolSize'],
                   meta['nConvLayers'], meta['nConvKernels'],  
                   meta['nFullLayers'], meta['nFullOut'])  
@@ -202,8 +201,7 @@ def loadConvNet(f, batchSize):
     return net
 
 def train(dataset, nLabels, shape, 
-          learning_rate=0.1, n_epochs=200,          
-          batchSize=500, softObj = True,
+          learning_rate=0.1, n_epochs=200, batchSize=500, 
           kernelShape = (5, 5), poolSize = (2, 2),
           nConvLayers = 2, nConvKernels = [20, 50],  
           nFullLayers = 1, nFullOut = [500]):
@@ -237,25 +235,22 @@ def train(dataset, nLabels, shape,
 
     # allocate symbolic variables for the data
     index = T.lscalar()  # index to a [mini]batch
-    if softObj:
-        y = T.matrix('y')
-    else:
-        y = T.ivector('y')  # the labels are presented as 1D vector of [int] labels
-
+    y = T.matrix('y')
+    
     ######################
     # BUILD ACTUAL MODEL #
     ######################
     print '... building the model'
 
-    net = ConvNet(batchSize, shape, nLabels, softObj,
+    net = ConvNet(batchSize, shape, nLabels,
                  kernelShape, poolSize,
                  nConvLayers, nConvKernels,  
                  nFullLayers, nFullOut)  
    
     # the cost we minimize during training is the NLL of the model
-    cost = net.layer.negative_log_likelihood(y)
+    cost = net.layer.mse(y)
 
-    validate_model = theano.function([index], net.layer.errors(y),
+    validate_model = theano.function([index], net.layer.sqrt_mse(y),
                                      givens={
             net.x: valid_set_x[index * batchSize: (index + 1) * batchSize],
             y: valid_set_y[index * batchSize: (index + 1) * batchSize]})
@@ -280,10 +275,7 @@ def train(dataset, nLabels, shape,
     ###############
     # TRAIN MODEL #
     ###############
-    if softObj:
-        print '... training soft assignement'
-    else:
-        print '... training hard assignement'
+    print '... training assignement'
 
     # early-stopping parameters
     patience = 10000  # look as this many examples regardless
@@ -314,7 +306,11 @@ def train(dataset, nLabels, shape,
 
             if iter % 100 == 0:
                 print 'training @ iter = ', iter
+
+            t0 = time.clock()
             cost_ij = train_model(minibatch_index)
+            t1 = time.clock()
+            print "Batch processed in %f" % (t1 - t0)
 
             if (iter + 1) % validation_frequency == 0:
 
@@ -353,7 +349,4 @@ def train(dataset, nLabels, shape,
     
     net.setParams(best_params)
     return net, best_validation_loss
-
-if __name__ == '__main__':
-    train('mnist.pkl.gz', 10, (28, 28, 1), softObj = False)
 

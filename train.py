@@ -5,7 +5,6 @@ sys.path.append('code')
 import process
 import convolutional_mlp as cnn
 
-softObj = True
 crop = 120
 size = 60
 
@@ -26,6 +25,6 @@ for dataset in process.readTrainVal('data/training_solutions.csv',
                                     'data/images_training_cropped_%d_%d' % (crop, size), 
                               softObj, taskID):
 
-    net, loss = cnn.train(dataset, dataset['nLabels'], dataset['shape'], softObj = softObj, **meta)
+    net, loss = cnn.train(dataset, dataset['nLabels'], dataset['shape'], **meta)
     net.save('task%d.pkl' % dataset['taskID'])
-    net.save('task%d_%s_%.3f.pkl' % (dataset['taskID'], net.getMetaHash(), loss))
+    net.save('task%d_%s_%.6f.pkl' % (dataset['taskID'], net.getMetaHash(), loss))
